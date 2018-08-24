@@ -5,9 +5,11 @@
 -->
 <style>
 .barcode_display {
-    position: absolute;
-    top: 0px;
-    left: 260px;
+overflow:hidden;
+height:100%;
+}
+.barcode_display object{
+height: auto;
 }
 </style>
 <div class="payment-method" data-bind="css: {'_active': (getCode() == isChecked())}">
@@ -33,7 +35,8 @@
             <!--/ko-->
         </div>
         <hr>
-        <div class="barcode_display" id="barcode_display"></div>
+        <div class="barcode_display" id="barcode_display"><object width="100%" height="100%" data-bind="attr: { data: getBarcode() }" type="application/pdf" class="internal"  style="min-height: 700px;" /></object></div>
+
         <p data-bind="html: getInstructionBarcode()"></p>
 
     </div>

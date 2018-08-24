@@ -23,3 +23,38 @@ Stores->Configuration
 Tab menu
 GBPrimePay
 GBPrimePay Payments Settings
+
+
+
+
+Manual Uninstall
+
+commands to uninstall the extension:
+
+php bin/magento module:disable GBPrimePay_Payments
+
+remove GBPrimePay folder form "/app/code/"
+
+php bin/magento setup:upgrade
+php bin/magento cache:clean
+php bin/magento cache:flush
+
+
+
+if installation again
+commands to enable:
+
+php bin/magento module:enable GBPrimePay_Payments
+
+
+
+
+
+
+
+
+
+
+
+
+

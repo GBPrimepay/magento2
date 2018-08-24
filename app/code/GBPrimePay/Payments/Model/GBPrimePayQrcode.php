@@ -7,7 +7,7 @@
 
 namespace GBPrimePay\Payments\Model;
 
-use MagentoPay\MagentoPay;
+
 use Magento\Framework\Exception\CouldNotSaveException;
 use GBPrimePay\Payments\Helper\Constant;
 
@@ -85,28 +85,38 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
     protected $_canUseInternal = false;
     protected $_isInitializeNeeded = true;
 
+
     public function validate()
     {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("validate start//");
+}
         return true;
     }
 
+
+
+
     public function assignData(\Magento\Framework\DataObject $data)
     {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("assignData start//");
+$this->gbprimepayLogger->addDebug("assignData data//" . print_r($data, true));
+}
+
         $infoInstance = $this->getInfoInstance();
         $_tmpData = $data->_data;
         $additionalDataRef = $_tmpData['additional_data'];
         $infoInstance->setAdditionalInformation('data', json_encode($additionalDataRef));
-    }
 
-    public function _gbprimepayInit()
-    {
-        try {
-            $env = $this->_config->getEnvironment();
-        } catch (\Exception $exception) {
-            if ($this->_config->getCanDebug()) {
-                $this->gbprimepayLogger->addDebug("error gbprimepay init//" . $exception->getMessage());
-            }
-        }
+
+
+
+
+
+
+
+
     }
 
     public function getConfigPaymentAction()
@@ -117,7 +127,9 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
     public function initialize($paymentAction, $stateObject)
     {
         try {
-            $this->_gbprimepayInit();
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("initialize start//");
+}
             /**
              * @var \Magento\Sales\Model\Order $order
              */
@@ -138,35 +150,71 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
             }
 
             $qrcode = $this->_createQrcode($payment, $gbprimepayCustomerId);
-            $gbprimepayQrcodeId = $qrcode['id'];
-            $payment->setAdditionalInformation("gbprimepayQrcodeId", $gbprimepayQrcodeId);
-            $payment->setAdditionalInformation("gbprimepayQrcodeData", $qrcode['qrcode']);
+            $gbprimepayQrcodeId = $qrcode['resultDisplayCode'];
 
-            $item = $this->_debitAuthority($payment, $amount, $gbprimepayQrcodeId);
-            if ($item['id'] && $item['state'] === 'approved') {
-                $capture = $this->_capture($payment, $amount);
-                if ($capture['state'] == 'completed') {
-                    $stateObject->setData('state', \Magento\Sales\Model\Order::STATE_PROCESSING);
-                    $payment->setAdditionalInformation("back_transaction_id", $capture['id']);
-                    $totalDue = $order->getTotalDue();
-                    $baseTotalDue = $order->getBaseTotalDue();
-                    $payment->setAmountAuthorized($totalDue);
-                    $payment->setBaseAmountAuthorized($baseTotalDue);
-                    $payment->capture(null);
-
-                    return $this;
-                } else {
-                    //pending payment, waiting for callback
-                    $order->setCanSendNewEmailFlag(false);
-                }
-            } else {
-                if ($this->_config->getCanDebug()) {
-                    $this->gbprimepayLogger->addDebug("autho 2//");
-                }
-                throw new CouldNotSaveException(
-                    __('Something went wrong. Please try again!')
-                );
+            if ($this->_config->getCanDebug()) {
+            $this->gbprimepayLogger->addDebug("resultDisplayCode qrcode//" . print_r($qrcode, true));
             }
+
+            $payment->setAdditionalInformation("gbprimepayQrcodeId", $gbprimepayQrcodeId);
+            // $payment->setAdditionalInformation("gbprimepayQrcodeData", $qrcode['qrcode']);
+            $payment->setAdditionalInformation("gbprimepayQrcodeData", $qrcode['resultDisplayCode']);
+
+$waitforcapture = $this->_waitforcapture($order->getPayment(), $order->getBaseGrandTotal());
+
+
+            // del
+                          // $qrcode = MagentoPay::QrcodeAccount()->create([
+                          //     "user_id" => $customerId,
+                          //     "qrcode_name" => $additionalDataRef['qrcode_name'],
+                          //     "account_name" => $additionalDataRef['qrcode_account_name'],
+                          //     "routing_number" => $additionalDataRef['qrcode_routing_number'],
+                          //     "account_number" => $additionalDataRef['qrcode_account_number'],
+                          //     "account_type" => $additionalDataRef['account_type'],
+                          //     "holder_type" => $additionalDataRef['holder_type'],
+                          //     "country" => $additionalDataRef['qrcode_country'],
+                          // ]);
+            // del
+
+            // $item = $this->_debitAuthority($payment, $amount, $gbprimepayQrcodeId);
+
+
+
+
+
+
+            // if ($this->_config->getCanDebug()) {
+            // $this->gbprimepayLogger->addDebug("initialize item//" . print_r($item, true));
+            // }
+
+
+
+            //
+            //
+            // if ($item['id'] && $item['state'] === 'approved') {
+            //     $capture = $this->_capture($payment, $amount);
+            //     if ($capture['state'] == 'completed') {
+            //         $stateObject->setData('state', \Magento\Sales\Model\Order::STATE_PROCESSING);
+            //         $payment->setAdditionalInformation("back_transaction_id", $capture['id']);
+            //         $totalDue = $order->getTotalDue();
+            //         $baseTotalDue = $order->getBaseTotalDue();
+            //         $payment->setAmountAuthorized($totalDue);
+            //         $payment->setBaseAmountAuthorized($baseTotalDue);
+            //         $payment->capture(null);
+            //
+            //         return $this;
+            //     } else {
+            //         //pending payment, waiting for callback
+            //         $order->setCanSendNewEmailFlag(false);
+            //     }
+            // } else {
+            //     if ($this->_config->getCanDebug()) {
+            //         $this->gbprimepayLogger->addDebug("autho 2//");
+            //     }
+            //     throw new CouldNotSaveException(
+            //         __('Something went wrong. Please try again!')
+            //     );
+            // }
         } catch (\Exception $exception) {
             if ($this->_config->getCanDebug()) {
                 $this->gbprimepayLogger->addDebug("autho 3//" . $exception->getMessage());
@@ -185,6 +233,9 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function capture(\Magento\Payment\Model\InfoInterface $payment, $amount)
     {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("capture start//");
+}
         $payment->setAdditionalInformation('isCapture', true);
         $order = $payment->getOrder();
         $magentoOrderId = $order->getIncrementId();
@@ -207,6 +258,9 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
     public function _debitAuthority($payment, $amount, $qrcodeId)
     {
         try {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("_debitAuthority start//");
+}
             /**
              * @var \Magento\Sales\Model\Order $order
              */
@@ -247,6 +301,9 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
     public function _createCustomer($payment)
     {
         try {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("_createCustomer start//");
+}
             /**
              * @var \Magento\Sales\Model\Order $order
              */
@@ -319,34 +376,109 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
      */
     public function _createQrcode($payment, $customerId)
     {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("_createQrcode start//");
+}
         /**
          * @var \Magento\Sales\Model\Order $order
          */
         $order = $payment->getOrder();
+        $amount = $order->getBaseGrandTotal();
 
         try {
             $additionalDataRef = $payment->getAdditionalInformation('data');
             $additionalDataRef = json_decode($additionalDataRef, true);
             $payment->setAdditionalInformation('data', null);
-            $qrcode = MagentoPay::QrcodeAccount()->create([
-                "user_id" => $customerId,
-                "qrcode_name" => $additionalDataRef['qrcode_name'],
-                "account_name" => $additionalDataRef['qrcode_account_name'],
-                "routing_number" => $additionalDataRef['qrcode_routing_number'],
-                "account_number" => $additionalDataRef['qrcode_account_number'],
-                "account_type" => $additionalDataRef['account_type'],
-                "holder_type" => $additionalDataRef['holder_type'],
-                "country" => $additionalDataRef['qrcode_country'],
-            ]);
 
-            if ($this->_config->getCanDebug()) {
-                $this->gbprimepayLogger->addDebug("qrcode//" . print_r($qrcode, true));
-            }
+//genqrcode
 
-            if ($qrcode['id']) {
-                $qrcode = MagentoPay::QrcodeAccount()->get($qrcode['id']);
-            }
-            unset($additionalDataRef);
+
+
+
+
+              if ($this->_config->getEnvironment() === 'prelive') {
+                  $url = Constant::URL_QRCODE_TEST;
+                  $itemtoken = $this->_config->getTestTokenKey();
+              } else {
+                  $url = Constant::URL_QRCODE_LIVE;
+                  $itemtoken = $this->_config->getLiveTokenKey();
+              }
+
+              $customer_full_name = $order->getBillingAddress()->getFirstname() . ' ' . $order->getBillingAddress()->getLastname();
+
+$itemamount = number_format((($amount * 100)/100), 2, '.', '');
+$itemreferenceno = $order->getIncrementId();
+$itemresponseurl = $this->_config->getresponseUrl('response_qrcode');
+$itembackgroundurl = $this->_config->getresponseUrl('background_qrcode');
+$itemcustomerEmail = $order->getCustomerEmail();
+$callgetMerchantId = $this->_config->getMerchantId();
+$callgenerateID = $this->_config->generateID();
+
+
+
+
+
+
+
+
+
+
+
+            $iniactive = 0;
+
+
+
+
+
+
+              $field = "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"token\"\r\n\r\n$itemtoken\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"amount\"\r\n\r\n$itemamount\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"referenceNo\"\r\n\r\n$itemreferenceno\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"payType\"\r\n\r\nF\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"responseUrl\"\r\n\r\n$itemresponseurl\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"backgroundUrl\"\r\n\r\n$itembackgroundurl\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"detail\"\r\n\r\n$callgetMerchantId\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"customerName\"\r\n\r\n$customer_full_name\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"customerEmail\"\r\n\r\n$itemcustomerEmail\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"merchantDefined1\"\r\n\r\n$callgenerateID\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"merchantDefined2\"\r\n\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"merchantDefined3\"\r\n\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"merchantDefined4\"\r\n\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"merchantDefined5\"\r\n\r\n\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--";
+
+
+
+
+                // if ($this->_config->getCanDebug()) {
+                //     $this->gbprimepayLogger->addDebug("field//" . print_r($field, true));
+                // }
+
+
+
+
+
+
+
+
+              $callback = $this->_config->sendQRCurl("$url", $field, 'POST');
+
+              // if ($this->_config->getCanDebug()) {
+              //     $this->gbprimepayLogger->addDebug("Debug 2 callback//" . print_r($callback, true));
+              // }
+
+                  if ($callback=="Incomplete information") {
+                    $qrcode = [
+                        "resultDisplayCode" => "",
+                    ];
+
+                  }else{
+                        // echo $callback;
+                        // $this->_registry->register('generateqrcode', $callback);
+
+                        $this->checkoutSession->setGenerateQrcode($callback);
+                        $this->checkoutSession->setGenerateQrcodeStatus('true');
+                        // $this->checkoutSession->getGenerateQrcode();
+                        // if ($this->_config->getCanDebug()) {
+                        //     $this->gbprimepayLogger->addDebug("Debug callback//" . print_r($callback, true));
+                        // }
+                        $iniactive = 1;
+                        $qrcode = [
+                            "resultDisplayCode" => "$itemreferenceno",
+                        ];
+                  }
+
+
+
+
+                        // unset($additionalDataRef);
+
 
             return $qrcode;
         } catch (\Exception $exception) {
@@ -359,12 +491,25 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
         }
     }
 
+
+
+
+
+
+
+
+
+
+
     /**
      * @param \Magento\Payment\Model\InfoInterface|\Magento\Sales\Model\Order\Payment $payment
      */
     public function _capture($payment, $amount)
     {
         try {
+if ($this->_config->getCanDebug()) {
+$this->gbprimepayLogger->addDebug("_capture start//");
+}
             $gbprimepayQrcodeId = $payment->getAdditionalInformation('gbprimepayQrcodeId');
             $order = $payment->getOrder();
             $item = MagentoPay::Charges()->create(array(
@@ -405,4 +550,38 @@ class GBPrimePayQrcode extends \Magento\Payment\Model\Method\AbstractMethod
             );
         }
     }
+
+
+
+
+
+
+
+    /**
+     * @param \Magento\Payment\Model\InfoInterface|\Magento\Sales\Model\Order\Payment $payment
+     */
+    public function _waitforcapture($payment, $amount)
+    {
+        try {
+    if ($this->_config->getCanDebug()) {
+    $this->gbprimepayLogger->addDebug("_waitforcapture start//");
+    }
+
+
+
+        } catch (\Exception $exception) {
+            if ($this->_config->getCanDebug()) {
+                $this->gbprimepayLogger->addDebug("_waitforcapture error //" . $exception->getMessage());
+            }
+
+        }
+    }
+
+
+
+
+
+
+
+
 }

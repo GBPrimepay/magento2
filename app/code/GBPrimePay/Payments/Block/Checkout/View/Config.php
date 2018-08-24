@@ -13,6 +13,7 @@ class Config extends \Magento\Framework\View\Element\Template
 {
     public $_configHelper;
     protected $cardFactory;
+    private $checkoutSession;
     public $customerSession;
     public $countryFactory;
     public $localeList;
@@ -21,6 +22,7 @@ class Config extends \Magento\Framework\View\Element\Template
         Context $context,
         \GBPrimePay\Payments\Helper\ConfigHelper $configHelper,
         \GBPrimePay\Payments\Model\CardFactory $cardFactory,
+        \Magento\Checkout\Model\Session $checkoutSession,
         \Magento\Customer\Model\Session $customerSession,
         \Magento\Directory\Model\CountryFactory $countryFactory,
         \Magento\Framework\Locale\ListsInterface $localeList,
@@ -29,6 +31,7 @@ class Config extends \Magento\Framework\View\Element\Template
 
         $this->customerSession = $customerSession;
         $this->cardFactory = $cardFactory;
+        $this->checkoutSession = $checkoutSession;
         $this->_configHelper = $configHelper;
         parent::__construct($context, $data);
         $this->countryFactory = $countryFactory;
@@ -50,5 +53,15 @@ class Config extends \Magento\Framework\View\Element\Template
     public function getConfigData()
     {
         return $this->_configHelper;
+    }
+
+    public function getGenerateQrcode()
+    {
+        return $this->checkoutSession->getGenerateQrcode();
+    }
+
+    public function getGenerateBarcode()
+    {
+        return $this->checkoutSession->getGenerateBarcode();
     }
 }

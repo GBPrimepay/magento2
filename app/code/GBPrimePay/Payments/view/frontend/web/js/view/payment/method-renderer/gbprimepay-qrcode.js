@@ -10,8 +10,7 @@ define(
         'Magento_Checkout/js/view/payment/default',
         'Magento_Checkout/js/model/full-screen-loader',
         'Magento_Checkout/js/model/payment/additional-validators',
-        'Magento_Checkout/js/action/redirect-on-success'
-    ], function ($, ko, Component, fullScreenLoader, additionalValidators, redirectOnSuccessAction) {
+    ], function ($, ko, Component, fullScreenLoader, additionalValidators) {
         'use strict';
 
         return Component.extend({
@@ -24,13 +23,13 @@ define(
             QrcodeAccountNumber: ko.observable(),
 
             initObservable: function () {
+                // this.loadQrcodeRender();
                 this._super().observe({
                     sayHello: '1'
                 });
                 var self = this;
                 return this;
             },
-
             getCode: function () {
                 return 'gbprimepay_qrcode';
             },
@@ -40,8 +39,8 @@ define(
             getInstructionQrcode: function () {
                 return window.gbprimepay.instructionqrcode;
             },
-            getDemoQrcode: function () {
-                return window.gbprimepay.demoqrcode;
+            getQrcode: function () {
+                return window.gbprimepay.generateqrcode;
             },
             getTitleQrcode:function () {
               return window.gbprimepay.titleqrcode;

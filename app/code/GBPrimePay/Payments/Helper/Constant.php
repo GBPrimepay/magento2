@@ -20,6 +20,9 @@ class Constant
 
     const URL_QRCODE_TEST = 'https://api.globalprimepay.com/gbp/gateway/qrcode';
     const URL_QRCODE_LIVE = 'https://api.gbprimepay.com/gbp/gateway/qrcode';
+
+
+
     const URL_BARCODE_TEST = 'https://api.globalprimepay.com/gbp/gateway/barcode';
     const URL_BARCODE_LIVE = 'https://api.gbprimepay.com/gbp/gateway/barcode';
 
@@ -27,8 +30,10 @@ class Constant
 
     const URL_CHECKPUBLICKEY_TEST = 'https://api.globalprimepay.com/checkPublicKey';
     const URL_CHECKPUBLICKEY_LIVE = 'https://api.gbprimepay.com/checkPublicKey';
+
     const URL_CHECKPRIVATEKEY_TEST = 'https://api.globalprimepay.com/checkPrivateKey';
     const URL_CHECKPRIVATEKEY_LIVE = 'https://api.gbprimepay.com/checkPrivateKey';
+
     const URL_CHECKCUSTOMERKEY_TEST = 'https://api.globalprimepay.com/checkCustomerKey';
     const URL_CHECKCUSTOMERKEY_LIVE = 'https://api.gbprimepay.com/checkCustomerKey';
 

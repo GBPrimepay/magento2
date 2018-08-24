@@ -72,6 +72,9 @@ define(
             getTitleDirect:function () {
               return window.gbprimepay.titledirect;
             },
+            getLogoDirect:function () {
+              return window.gbprimepay.logodirect;
+            },
             getData:function () {
                 var isSave = $('#is-save').is(":checked");
                 return {

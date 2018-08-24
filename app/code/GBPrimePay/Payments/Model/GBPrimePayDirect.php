@@ -104,6 +104,10 @@ class GBPrimePayDirect extends \Magento\Payment\Model\Method\Cc
             $order = $payment->getOrder();
             $order->setCanSendNewEmailFlag(false);
             $amount = $order->getBaseGrandTotal();
+// $orderId = $order->getIncrementId();
+// if ($this->_config->getCanDebug()) {
+// $this->gbprimepayLogger->addDebug("orderId //" . print_r($orderId, true));
+// }
             /**
              * @var \Magento\Sales\Model\Order $order
              */
@@ -352,7 +356,6 @@ $iniactive = 0;
 
 
 
-      }
 
             $isLogin = $this->customerSession->isLoggedIn();
             if ($isLogin) {
@@ -373,6 +376,7 @@ $iniactive = 0;
             $payment->setCcExpMonth($card['card']['expirationMonth']);
             $payment->setCcExpYear($card['card']['expirationYear']);
 
+                  }
             return $card;
         } catch (\Exception $exception) {
             if ($this->_config->getCanDebug()) {

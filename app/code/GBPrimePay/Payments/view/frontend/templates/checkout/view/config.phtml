@@ -13,6 +13,9 @@ $customerId = $block->customerSession->getCustomerId() ? '1' : '0';
 $baseUrl = $block->getBaseUrl();
 $afterPO = $block->getUrl("gbprimepay/checkout/afterplaceorder");
 
+$generateqrcode = $block->getGenerateQrcode();
+$generatebarcode = $block->getGenerateBarcode();
+
 /** @var \Magento\Directory\Model\ResourceModel\Country\Collection $countryCollection */
 $countryCollection = $block->countryFactory->create()->getCollection();
 $countrySel = [];
@@ -31,12 +34,14 @@ ksort($countrySel);
     window.gbprimepay.afterPO = '<?php echo $afterPO; ?>';
     window.gbprimepay.customerLogin = Boolean('<?php echo $customerId; ?>' === "1");
     window.gbprimepay.titledirect = '<?php echo $configData->getTitleDirect(); ?>';
+    window.gbprimepay.logodirect = '<?php echo $configData->getLogoDirect(); ?>';
     window.gbprimepay.titleqrcode = '<?php echo $configData->getTitleQrcode(); ?>';
     window.gbprimepay.titlebarcode = '<?php echo $configData->getTitleBarcode(); ?>';
     window.gbprimepay.instructiondirect = '<?php echo $configData->getInstructionDirect(); ?>';
     window.gbprimepay.instructionqrcode = '<?php echo $configData->getInstructionQrcode(); ?>';
-    window.gbprimepay.demoqrcode = '<?php echo $configData->getDemoQrcode(); ?>';
+    window.gbprimepay.generateqrcode = '<?php echo $generateqrcode; ?>';
     window.gbprimepay.instructionbarcode = '<?php echo $configData->getInstructionBarcode(); ?>';
+    window.gbprimepay.generatebarcode = '<?php echo $generatebarcode; ?>';
     window.gbprimepay.isEnableSave = Boolean('<?php echo $isEnableSave; ?>' === "1");
     window.gbprimepay.savedCards = [{"id": 0, "last4": "Use other card..."}];
     window.gbprimepay.jsoncountry = <?php echo json_encode($countrySel); ?>;

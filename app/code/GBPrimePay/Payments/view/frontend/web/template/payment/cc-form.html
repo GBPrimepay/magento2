@@ -9,7 +9,7 @@
         <span><!-- ko i18n: 'Credit Card Information'--><!-- /ko --></span>
     </legend><br />
     <!-- /ko -->
-    <div class="field type">
+    <div class="field type" style="display:none;">
         <div class="control">
             <ul class="credit-card-types">
                 <!-- ko foreach: {data: getCcAvailableTypesValues(), as: 'item'} -->
@@ -35,6 +35,16 @@
                    data-bind="attr: {id: getCode() + '_cc_type', 'data-container': getCode() + '-cc-type'},
                    value: creditCardType
                    ">
+        </div>
+    </div>
+
+    <div class="field type">
+        <div class="control">
+
+
+                    <img data-bind="attr: { src: getLogoDirect() }"  style="padding:0px 0px 0px 0px;" />
+
+
         </div>
     </div>
     <div class="field number required">

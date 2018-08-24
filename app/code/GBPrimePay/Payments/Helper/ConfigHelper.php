@@ -8,6 +8,7 @@
 namespace GBPrimePay\Payments\Helper;
 
 use Magento\Framework\Encryption\EncryptorInterface;
+use Magento\Framework\UrlInterface;
 use Magento\Framework\View\Asset\Repository;
 use Magento\Framework\App\Helper\Context;
 use GBPrimePay\Payments\Helper\Constant as Constant;
@@ -16,16 +17,19 @@ use Magento\Mtf\Util\Command\Cli;
 class ConfigHelper extends \Magento\Framework\App\Helper\AbstractHelper
 {
     protected $_encryptor;
+    protected $_urlBuilder;
     protected $_assetRepo;
 
     public function __construct(
         Context $context,
         EncryptorInterface $encryptorInterface,
+        UrlInterface $urlBuilder,
         Repository $assetRepo
     ) {
 
         parent::__construct($context);
         $this->_encryptor = $encryptorInterface;
+        $this->_urlBuilder = $urlBuilder;
         $this->_assetRepo = $assetRepo;
     }
 
@@ -38,9 +42,6 @@ class ConfigHelper extends \Magento\Framework\App\Helper\AbstractHelper
         }
         if($images=='logo'){
           $images = $this->_assetRepo->getUrl("GBPrimePay_Payments::images/gbprimepay-logo.png");
-        }
-        if($images=='qrdemo'){
-          $images = $this->_assetRepo->getUrl("GBPrimePay_Payments::images/qrcode-demo.png");
         }
 
         return $images;
@@ -412,11 +413,128 @@ class ConfigHelper extends \Magento\Framework\App\Helper\AbstractHelper
         return json_decode($body, true);
     }
 
+    public function sendQRCurl($url, $field, $type)
+    {
+        if ($this->getEnvironment() === 'prelive') {
+            $configkey = $this->getTestPublicKey();
+        } else {
+            $configkey = $this->getLivePublicKey();
+        }
+
+        if (empty($configkey)) {
+            return false;
+        }
+
+        $ch = curl_init($url);
+
+
+        $request_headers = array(
+            "Cache-Control: no-cache",
+            "content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+        );
+
+
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $field);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        curl_setopt($ch, CURLOPT_ENCODING, "");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
+
+        $body = curl_exec($ch);
+
+        if ($body=="Incomplete information") {
+          $body = 'error : Incomplete information';
+        }else{
+          // $body = ob_start();'\n<img src="data:image/png;base64,' . base64_encode($body) . '">';
+          $body = 'data:image/png;base64,' . base64_encode($body) . '';
+        }
+
+
+
+
+        curl_close($ch);
+        return $body;
+    }
+    public function sendBARCurl($url, $field, $type)
+    {
+        if ($this->getEnvironment() === 'prelive') {
+            $configkey = $this->getTestPublicKey();
+        } else {
+            $configkey = $this->getLivePublicKey();
+        }
+
+        if (empty($configkey)) {
+            return false;
+        }
+
+        $ch = curl_init($url);
+
+
+        $request_headers = array(
+            "Cache-Control: no-cache",
+            "content-type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW"
+        );
+
+
+        curl_setopt($ch, CURLOPT_POST, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $field);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        curl_setopt($ch, CURLOPT_ENCODING, "");
+        curl_setopt($ch, CURLOPT_TIMEOUT, 120);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 2);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $type);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $request_headers);
+
+        $body = curl_exec($ch);
+
+        if ($body=="Incomplete information") {
+          $body = 'error : Incomplete information';
+        }else{
+          // $body = ob_start();'\n<img src="data:image/png;base64,' . base64_encode($body) . '">';
+          $body = 'data:application/pdf;base64,' . base64_encode($body) . '';
+        }
+
+
+
+
+        curl_close($ch);
+        return $body;
+    }
+
     public function getDemoQrcode()
     {
         $images = $this->_assetRepo->getUrl("GBPrimePay_Payments::images/qrcode-demo.png");
         return $images;
     }
+    public function getresponseUrl($routeurl)
+    {
+
+        if($routeurl=='response_qrcode'){
+          $routeurl = $this->_urlBuilder->getUrl("checkout/onepage/success");
+        }
+        if($routeurl=='background_qrcode'){
+          $routeurl = $this->_urlBuilder->getUrl("checkout/afterplaceqrcodeorder");
+        }
+        if($routeurl=='response_barcode'){
+          $routeurl = $this->_urlBuilder->getUrl("checkout/onepage/success");
+        }
+        if($routeurl=='background_barcode'){
+          $routeurl = $this->_urlBuilder->getUrl("checkout/afterplacebarcodeorder");
+        }
+
+        return $routeurl;
+    }
+
+
     public function getInstructionDirect()
     {
         return preg_replace('/\s+|\n+|\r/', ' ', $this->scopeConfig->getValue(
@@ -445,6 +563,11 @@ class ConfigHelper extends \Magento\Framework\App\Helper\AbstractHelper
         return preg_replace('/\s+|\n+|\r/', ' ', $this->scopeConfig->getValue(
             'gbprimepay/gbprimepay_direct/title'
         ));
+    }
+    public function getLogoDirect()
+    {
+        $images = $this->_assetRepo->getUrl("GBPrimePay_Payments::images/creditcard.png");
+        return $images;
     }
 
     public function getTitleQrcode()
